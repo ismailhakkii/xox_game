@@ -99,7 +99,10 @@ class _TicTacToeGameState extends State<TicTacToeGame> {
     if (emptySpots.isNotEmpty) {
       final random = Random();
       int computerChoice = emptySpots[random.nextInt(emptySpots.length)];
-      _makeMove(computerChoice);
+      // Delay bilgisayar hamlesi için biraz gecikme ekleyebiliriz
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _makeMove(computerChoice);
+      });
     }
   }
 
@@ -148,6 +151,45 @@ class _TicTacToeGameState extends State<TicTacToeGame> {
     });
   }
 
+  Widget buildCell(int index) {
+    return GestureDetector(
+      onTap: () => _makeMove(index),
+      child: AnimatedCrossFade(
+        firstChild: Container(
+          key: const ValueKey('empty'),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black),
+            color: Colors.white,
+          ),
+          child: const Center(
+            child: Text(
+              '',
+              style: TextStyle(fontSize: 40),
+            ),
+          ),
+        ),
+        secondChild: Container(
+          key: ValueKey(board[index]),
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black),
+            color: board[index] == 'X' ? Colors.lightBlueAccent : Colors.pinkAccent,
+          ),
+          child: Center(
+            child: Text(
+              board[index],
+              style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+        crossFadeState: board[index].isEmpty ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+        duration: const Duration(milliseconds: 300),
+        firstCurve: Curves.easeIn,
+        secondCurve: Curves.easeOut,
+        sizeCurve: Curves.linear,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -172,6 +214,7 @@ class _TicTacToeGameState extends State<TicTacToeGame> {
               child: AspectRatio(
                 aspectRatio: 1, // Kare düzeni sağlamak için
                 child: GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(), // Kaydırmayı devre dışı bırak
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                     crossAxisSpacing: 10,
@@ -179,20 +222,7 @@ class _TicTacToeGameState extends State<TicTacToeGame> {
                   ),
                   itemCount: 9,
                   itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: () => _makeMove(index),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black),
-                        ),
-                        child: Center(
-                          child: Text(
-                            board[index],
-                            style: const TextStyle(fontSize: 40),
-                          ),
-                        ),
-                      ),
-                    );
+                    return buildCell(index);
                   },
                 ),
               ),
